@@ -14,3 +14,11 @@ Sign up for a GoDaddy account here: <https://www.godaddy.com/>
 
 An API Key and Secret is required to authenticate to the service, which can be
 obtained from https://developer.godaddy.com/keys
+
+## Local Configuration
+
+Create a `.env` file at the root of this project that contains the following :
+```bash
+SHOPPER_ID=<your-shopper-id>
+API_KEY=<your-api-key>
+API_SECRET=<your-api-secret>
