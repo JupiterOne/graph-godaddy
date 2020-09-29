@@ -12,7 +12,7 @@ To conigure this integration you should have an account in GoDaddy and create an
 - The **API Key** and **Secret** can be created from
   https://developer.godaddy.com/keys
 
-- The **Customer Number (Shopper ID)** can be obtained your account on the
+- The **Customer Number (Shopper ID)** can be obtained for your account on the
   GoDaddy web console.
 
 <!-- {J1_DOCUMENTATION_MARKER_START} -->
