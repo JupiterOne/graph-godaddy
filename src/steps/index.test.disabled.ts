@@ -1,16 +1,20 @@
 import { createMockStepExecutionContext } from '@jupiterone/integration-sdk-testing';
 
 import { IntegrationConfig } from '../types';
-import { fetchGroups, fetchUsers } from './access';
+import { fetchDomains } from './domains';
 import { fetchAccountDetails } from './account';
 
-const DEFAULT_CLIENT_ID = 'dummy-acme-client-id';
-const DEFAULT_CLIENT_SECRET = 'dummy-acme-client-secret';
+const DEFAULT_API_KEY = 'dummy-key';
+const DEFAULT_API_SECRET = 'dummy-secret';
+const DEFAULT_SHOPPER_ID = '123456789';
 
 const integrationConfig: IntegrationConfig = {
-  clientId: process.env.CLIENT_ID || DEFAULT_CLIENT_ID,
-  clientSecret: process.env.CLIENT_SECRET || DEFAULT_CLIENT_SECRET,
+  apiKey: process.env.API_KEY || DEFAULT_API_KEY,
+  apiSecret: process.env.API_SECRET || DEFAULT_API_SECRET,
+  shopperId: process.env.SHOPPER_ID || DEFAULT_SHOPPER_ID,
 };
+
+jest.setTimeout(10000 * 9);
 
 test('should collect data', async () => {
   const context = createMockStepExecutionContext<IntegrationConfig>({
@@ -20,8 +24,7 @@ test('should collect data', async () => {
   // Simulates dependency graph execution.
   // See https://github.com/JupiterOne/sdk/issues/262.
   await fetchAccountDetails(context);
-  await fetchUsers(context);
-  await fetchGroups(context);
+  await fetchDomains(context);
 
   // Review snapshot, failure is a regression
   expect({
@@ -39,60 +42,66 @@ test('should collect data', async () => {
   expect(accounts).toMatchGraphObjectSchema({
     _class: ['Account'],
     schema: {
-      additionalProperties: false,
+      additionalProperties: true,
       properties: {
-        _type: { const: 'acme_account' },
-        manager: { type: 'string' },
+        _type: { const: 'godaddy_account' },
+        email: { type: 'string' },
         _rawData: {
           type: 'array',
           items: { type: 'object' },
         },
       },
-      required: ['manager'],
+      required: ['email'],
     },
   });
 
-  const users = context.jobState.collectedEntities.filter((e) =>
-    e._class.includes('User'),
+  const domains = context.jobState.collectedEntities.filter((e) =>
+    e._class.includes('Domain'),
   );
-  expect(users.length).toBeGreaterThan(0);
-  expect(users).toMatchGraphObjectSchema({
-    _class: ['User'],
+  expect(domains.length).toBeGreaterThan(0);
+  expect(domains).toMatchGraphObjectSchema({
+    _class: ['Domain'],
     schema: {
-      additionalProperties: false,
+      additionalProperties: true,
       properties: {
-        _type: { const: 'acme_user' },
-        firstName: { type: 'string' },
+        _type: { const: 'godaddy_domain' },
+        domainName: { type: 'string' },
+        createdOn: { type: 'number' },
+        expiresOn: { type: 'number' },
         _rawData: {
           type: 'array',
           items: { type: 'object' },
         },
       },
-      required: ['firstName'],
+      required: ['domainName', 'createdOn', 'expiresOn'],
     },
   });
 
-  const userGroups = context.jobState.collectedEntities.filter((e) =>
-    e._class.includes('UserGroup'),
+  const domainRecords = context.jobState.collectedEntities.filter((e) =>
+    e._class.includes('DomainRecord'),
   );
-  expect(userGroups.length).toBeGreaterThan(0);
-  expect(userGroups).toMatchGraphObjectSchema({
-    _class: ['UserGroup'],
+  expect(domainRecords.length).toBeGreaterThan(0);
+  expect(domainRecords).toMatchGraphObjectSchema({
+    _class: ['DomainRecord'],
     schema: {
-      additionalProperties: false,
+      additionalProperties: true,
       properties: {
-        _type: { const: 'acme_group' },
-        logoLink: {
+        _type: { const: 'godaddy_domain_record' },
+        type: {
           type: 'string',
-          // Validate that the `logoLink` property has a URL format
-          format: 'url',
+        },
+        name: {
+          type: 'string',
+        },
+        value: {
+          type: 'string',
         },
         _rawData: {
           type: 'array',
           items: { type: 'object' },
         },
       },
-      required: ['logoLink'],
+      required: ['type', 'name', 'value'],
     },
   });
 });

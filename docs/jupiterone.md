@@ -2,21 +2,18 @@
 
 ## Setup
 
-In this section, please provide details about how to set up the integration with
-JupiterOne. This may require provisioning some resources on the provider's side
-(perhaps a role, app, or api key) and passing information over to JupiterOne.
+JupiterOne provides a managed integration for GoDaddy. The integration connects
+directly to GoDaddy APIs to obtain domain related data.
 
-## Data Model
+To conigure this integration you should have an account in GoDaddy and create an
+**API Key**. You will also need the **API Key Secret** and the **Customer Number
+(Shopper ID)**.
 
-Provide an overview here of the resources collected from the integration. Please
-provide a mapping of how the resources collected map to the JupiterOne Data
-Model. The tables below were taken from the Azure integration to provide an
-example of how to display that information.
+- The **API Key** and **Secret** can be created from
+  https://developer.godaddy.com/keys
 
-When you start developing an integration, please clear out the tables below. As
-you add support for new entities and relationships, please update the tables and
-document the addition in the [CHANGELOG.md](../CHANGELOG.md) file at the root of
-the project.
+- The **Customer Number (Shopper ID)** can be obtained for your account on the
+  GoDaddy web console.
 
 <!-- {J1_DOCUMENTATION_MARKER_START} -->
 <!--
@@ -35,19 +32,20 @@ https://github.com/JupiterOne/sdk/blob/master/docs/integrations/development.md
 
 The following entities are created:
 
-| Resources | Entity `_type` | Entity `_class` |
-| --------- | -------------- | --------------- |
-| Account   | `acme_account` | `Account`       |
+| Resources    | Entity `_type`          | Entity `_class` |
+| ------------ | ----------------------- | --------------- |
+| Account      | `godaddy_account`       | `Account`       |
+| Domain       | `godaddy_domain`        | `Domain`        |
+| DomainRecord | `godaddy_domain_record` | `DomainRecord`  |
 
 ### Relationships
 
 The following relationships are created/mapped:
 
-| Source Entity `_type` | Relationship `_class` | Target Entity `_type` |
-| --------------------- | --------------------- | --------------------- |
-| `acme_account`        | **HAS**               | `acme_user`           |
-| `acme_account`        | **HAS**               | `acme_group`          |
-| `acme_group`          | **HAS**               | `acme_user`           |
+| Source Entity `_type` | Relationship `_class` | Target Entity `_type`   |
+| --------------------- | --------------------- | ----------------------- |
+| `godaddy_account`     | **HAS**               | `godaddy_domain`        |
+| `godaddy_domain`      | **HAS**               | `godaddy_domain_record` |
 
 <!--
 ********************************************************************************

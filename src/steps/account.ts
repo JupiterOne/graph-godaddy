@@ -5,33 +5,40 @@ import {
 } from '@jupiterone/integration-sdk-core';
 
 import { IntegrationConfig } from '../types';
-
-export const ACCOUNT_ENTITY_KEY = 'entity:account';
+import { createAPIClient } from '../client';
 
 export async function fetchAccountDetails({
+  instance,
   jobState,
 }: IntegrationStepExecutionContext<IntegrationConfig>) {
+  const apiClient = createAPIClient(instance.config);
+  const accountKey = `godaddy:account:${instance.config.shopperId}`;
+  const accountData = await apiClient.getAccountDetails();
   const accountEntity = await jobState.addEntity(
     createIntegrationEntity({
       entityData: {
-        source: {
-          id: 'acme-unique-account-id',
-          name: 'Example Co. Acme Account',
-        },
+        source: accountData,
         assign: {
-          _key: 'acme-unique-account-id',
-          _type: 'acme_account',
+          _key: accountKey,
+          _type: 'godaddy_account',
           _class: 'Account',
-          mfaEnabled: true,
-          // This is a custom property that is not a part of the data model class
-          // hierarchy. See: https://github.com/JupiterOne/data-model/blob/master/src/schemas/Account.json
-          manager: 'Manager Name',
+          firstName: accountData.nameFirst,
+          lastName: accountData.nameLast,
+          name: `GoDaddy Account ${instance.config.shopperId}`,
+          displayName: `GoDaddy Account ${instance.config.shopperId}`,
+          email: accountData.email,
+          owner: accountData.email,
+          marketId: accountData.marketId,
+          shopperId: accountData.shopperId,
+          accountId: accountData.shopperId,
+          id: accountData.shopperId,
+          externalId: accountData.externalId,
         },
       },
     }),
   );
 
-  await jobState.setData(ACCOUNT_ENTITY_KEY, accountEntity);
+  await jobState.setData(accountKey, accountEntity);
 }
 
 export const accountSteps: IntegrationStep<IntegrationConfig>[] = [
@@ -41,7 +48,7 @@ export const accountSteps: IntegrationStep<IntegrationConfig>[] = [
     entities: [
       {
         resourceName: 'Account',
-        _type: 'acme_account',
+        _type: 'godaddy_account',
         _class: 'Account',
       },
     ],
