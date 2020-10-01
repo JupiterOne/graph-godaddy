@@ -11,9 +11,9 @@ export default async function validateInvocation(
 ) {
   const { config } = context.instance;
 
-  if (!config.apiSecret || !config.apiSecret || !config.shopperId) {
+  if (!config.apiKey || !config.apiSecret || !config.shopperId) {
     throw new IntegrationValidationError(
-      'Config requires all of {apiSecret, apiSecret, shopperId}',
+      'Config requires all of {apiKey, apiSecret, shopperId}',
     );
   }
 
