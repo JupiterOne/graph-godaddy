@@ -46,6 +46,8 @@ export async function fetchDomains({
             billingContactEmail: domainDetails.contactBilling?.email,
             registrantContactEmail: domainDetails.contactRegistrant?.email,
             techContactEmail: domainDetails.contactTech?.email,
+            transferLock: domainDetails.transferProtected,
+            locked: domainDetails.transferProtected,
           },
         },
       }),
