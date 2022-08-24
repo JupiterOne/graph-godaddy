@@ -18,7 +18,9 @@ obtained from https://developer.godaddy.com/keys
 ## Local Configuration
 
 Create a `.env` file at the root of this project that contains the following :
+
 ```bash
 SHOPPER_ID=<your-shopper-id>
 API_KEY=<your-api-key>
 API_SECRET=<your-api-secret>
+```
