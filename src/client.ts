@@ -1,6 +1,11 @@
 import axios from 'axios';
 import { IntegrationConfig } from './types';
-import { IntegrationProviderAuthenticationError } from '@jupiterone/integration-sdk-core';
+import {
+  IntegrationProviderAuthenticationError,
+  IntegrationLogger,
+  IntegrationProviderAuthorizationError,
+  IntegrationProviderAPIError,
+} from '@jupiterone/integration-sdk-core';
 
 export type ResourceIteratee<T> = (each: T) => Promise<void> | void;
 
@@ -16,7 +21,13 @@ export class APIClient {
   private apiSecret: string;
   private shopperId: string;
 
-  constructor(readonly config: IntegrationConfig) {
+  private MAX_RETRIES = 3;
+  private RATE_LIMIT_SLEEP_TIME = 5000;
+
+  constructor(
+    readonly config: IntegrationConfig,
+    readonly logger: IntegrationLogger,
+  ) {
     this.apiKey = config.apiKey;
     this.apiSecret = config.apiSecret;
     this.shopperId = config.shopperId;
@@ -27,25 +38,57 @@ export class APIClient {
     args?: object,
   ): Promise<T | undefined> {
     const url = `https://${HOSTNAME}${path.startsWith('/') ? '' : '/'}${path}`;
-    try {
-      const { data } = await axios.get(url, {
-        headers: {
-          Accept: 'application/json',
-          Authorization: `sso-key ${this.apiKey}:${this.apiSecret}`,
-        },
-        params: args,
-      });
-      return data;
-    } catch (err) {
-      const response = err.response || {};
-      if (response.status !== 404) {
-        throw Object.assign(new Error(err.message), {
-          url: url,
-          status: response.status || err.status || 'UNKNOWN',
-          statusText: response.statusText || err.statusText || 'UNKNOWN',
+    let retryCounter = 0;
+
+    do {
+      try {
+        const { data } = await axios.get(url, {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `sso-key ${this.apiKey}:${this.apiSecret}`,
+          },
+          params: args,
         });
+        return data;
+      } catch (err) {
+        const status = err.response?.status ?? 404;
+        const statusText = err.response?.statusText ?? 'No Response Received';
+
+        if (err.response?.status == 429) {
+          // Documentation and testing show that we should receive a retryAfterSec
+          // value in the event of a 429, but adding in a fallback sleep time in
+          // the event that it's ever missing.
+          const sleepTime = err.response?.data?.['retryAfterSec']
+            ? err.response?.data?.['retryAfterSec'] * 1000
+            : this.RATE_LIMIT_SLEEP_TIME;
+          this.logger.info(
+            `Encountered a rate limit.  Retrying in ${
+              sleepTime / 1000
+            } seconds.`,
+          );
+          retryCounter++;
+          await new Promise((resolve) => setTimeout(resolve, sleepTime));
+        } else if (err.response?.status === 401) {
+          throw new IntegrationProviderAuthenticationError({
+            status,
+            statusText,
+            endpoint: url,
+          });
+        } else if (err.response?.status == 403) {
+          throw new IntegrationProviderAuthorizationError({
+            status,
+            statusText,
+            endpoint: url,
+          });
+        } else {
+          throw new IntegrationProviderAPIError({
+            status,
+            statusText,
+            endpoint: url,
+          });
+        }
       }
-    }
+    } while (retryCounter < this.MAX_RETRIES);
   }
 
   public async verifyAuthentication(): Promise<void> {
@@ -87,6 +130,9 @@ export class APIClient {
   }
 }
 
-export function createAPIClient(config: IntegrationConfig): APIClient {
-  return new APIClient(config);
+export function createAPIClient(
+  config: IntegrationConfig,
+  logger: IntegrationLogger,
+): APIClient {
+  return new APIClient(config, logger);
 }
