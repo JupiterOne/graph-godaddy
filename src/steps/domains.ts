@@ -16,8 +16,9 @@ import { createHash } from 'crypto';
 export async function fetchDomains({
   instance,
   jobState,
+  logger,
 }: IntegrationStepExecutionContext<IntegrationConfig>) {
-  const apiClient = createAPIClient(instance.config);
+  const apiClient = createAPIClient(instance.config, logger);
 
   const accountKey = `godaddy:account:${instance.config.shopperId}`;
   const accountEntity = (await jobState.getData(accountKey)) as Entity;

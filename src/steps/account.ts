@@ -10,8 +10,9 @@ import { createAPIClient } from '../client';
 export async function fetchAccountDetails({
   instance,
   jobState,
+  logger,
 }: IntegrationStepExecutionContext<IntegrationConfig>) {
-  const apiClient = createAPIClient(instance.config);
+  const apiClient = createAPIClient(instance.config, logger);
   const accountKey = `godaddy:account:${instance.config.shopperId}`;
   const accountData = await apiClient.getAccountDetails();
   const accountEntity = await jobState.addEntity(
