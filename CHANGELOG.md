@@ -8,6 +8,12 @@ and this project adheres to
 
 ## [Unreleased]
 
+## 0.4.0 - 2021-10-13
+
+### Fixed
+
+- Handling rate limiting errors for API queries.
+
 ## 0.3.0 - 2021-10-13
 
 ### Changed
