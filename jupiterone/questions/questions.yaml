@@ -1,0 +1,4 @@
+---
+sourceId: managed:godaddy
+integrationDefinitionId: "${integration_definition_id}"
+questions: []
