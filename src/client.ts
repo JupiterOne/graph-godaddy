@@ -80,6 +80,16 @@ export class APIClient {
             statusText,
             endpoint: url,
           });
+        } else if (err.response?.status == 404) {
+          // Several comments online point to the possiblilty of certain DNS record
+          // queries returning 404 errors depending on how a GoDaddy user has configured
+          // their systems.  We need to eat these and continue so we don't miss out
+          // on other data.  Previously these were silently being masked, but an
+          // update to our error handling removed that.
+          this.logger.warn(
+            { url },
+            'Unable to query GoDaddy endpoint due to 404 error.',
+          );
         } else {
           throw new IntegrationProviderAPIError({
             status,
