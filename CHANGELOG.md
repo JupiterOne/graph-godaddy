@@ -8,6 +8,12 @@ and this project adheres to
 
 ## [Unreleased]
 
+## 0.4.3 - 2023-06-14
+
+### Fixed
+
+- A regression with how we are handling 404s is corrected.
+
 ## 0.4.2 - 2023-06-12
 
 ### Fixed
