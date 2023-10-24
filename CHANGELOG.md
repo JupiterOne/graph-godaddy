@@ -8,6 +8,12 @@ and this project adheres to
 
 ## [Unreleased]
 
+## 0.4.5 - 2023-10-24
+
+### Fixed
+
+- Add endpoint pagination
+
 ## 0.4.4 - 2023-10-24
 
 ### Fixed
