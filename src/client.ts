@@ -39,6 +39,7 @@ export class APIClient {
   ): Promise<T | undefined> {
     const url = `https://${HOSTNAME}${path.startsWith('/') ? '' : '/'}${path}`;
     let retryCounter = 0;
+    let abortRetry = false;
 
     do {
       try {
@@ -90,6 +91,7 @@ export class APIClient {
             { url },
             'Unable to query GoDaddy endpoint due to 404 error.',
           );
+          abortRetry = true;
         } else {
           throw new IntegrationProviderAPIError({
             status,
@@ -98,7 +100,7 @@ export class APIClient {
           });
         }
       }
-    } while (retryCounter < this.MAX_RETRIES);
+    } while (retryCounter < this.MAX_RETRIES && abortRetry === false);
   }
 
   public async verifyAuthentication(): Promise<void> {
