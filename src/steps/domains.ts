@@ -6,7 +6,7 @@ import {
   IntegrationStepExecutionContext,
   RelationshipClass,
   convertProperties,
-  getTime,
+  parseTimePropertyValue,
 } from '@jupiterone/integration-sdk-core';
 
 import { createAPIClient } from '../client';
@@ -37,8 +37,8 @@ export async function fetchDomains({
             displayName: domainDetails.domain,
             domainName: domainDetails.domain,
             name: domainDetails.domain,
-            createdOn: getTime(domainDetails.createdAt),
-            expiresOn: getTime(domainDetails.expires),
+            createdOn: parseTimePropertyValue(domainDetails.createdAt),
+            expiresOn: parseTimePropertyValue(domainDetails.expires),
             autoRenew: domainDetails.renewAuto,
             active: domainDetails.status === 'ACTIVE',
             id: domainDetails.domainId.toString(),
