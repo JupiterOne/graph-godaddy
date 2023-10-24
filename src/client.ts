@@ -6,6 +6,7 @@ import {
   IntegrationProviderAuthorizationError,
   IntegrationProviderAPIError,
 } from '@jupiterone/integration-sdk-core';
+import { URLSearchParams } from 'url';
 
 export type ResourceIteratee<T> = (each: T) => Promise<void> | void;
 
@@ -118,7 +119,7 @@ export class APIClient {
 
   private withURLSeachParams(
     url: string,
-    params: string | string[][] | Record<string, string> | URLSearchParams,
+    params: string | [string, string][] | Record<string, string>,
   ) {
     const qs = new URLSearchParams(params).toString();
 
@@ -156,7 +157,7 @@ export class APIClient {
         hasNext = false;
       }
 
-      if (hasNext) {
+      if (hasNext && response) {
         URLSeachParams.offset = String(Number(URLSeachParams.offset) + limit);
 
         records.push(...response);
@@ -184,7 +185,7 @@ export class APIClient {
         hasNext = false;
       }
 
-      if (hasNext) {
+      if (hasNext && response) {
         URLSeachParams.marker = response[response.length - 1].domain;
 
         for (const item of response || []) {
