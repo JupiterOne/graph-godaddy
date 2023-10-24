@@ -6,6 +6,7 @@ import {
   IntegrationProviderAuthorizationError,
   IntegrationProviderAPIError,
 } from '@jupiterone/integration-sdk-core';
+import { URLSearchParams } from 'url';
 
 export type ResourceIteratee<T> = (each: T) => Promise<void> | void;
 
@@ -116,6 +117,15 @@ export class APIClient {
     }
   }
 
+  private withURLSeachParams(
+    url: string,
+    params: string | [string, string][] | Record<string, string>,
+  ) {
+    const qs = new URLSearchParams(params).toString();
+
+    return `${url}${qs ? `?${qs}` : ''}`;
+  }
+
   public async getAccountDetails(): Promise<GoDaddyAccount> {
     return this.getData<GoDaddyAccount>(`/v1/shoppers/${this.shopperId}`);
   }
@@ -127,18 +137,62 @@ export class APIClient {
   public async getDomainRecords(
     domainName: string,
   ): Promise<GoDaddyDomainRecord[] | undefined> {
-    return this.getData<GoDaddyDomainRecord[]>(
-      `/v1/domains/${domainName}/records`,
-    );
+    const limit = 50;
+    let hasNext = true;
+    const URLSeachParams: { limit: string; offset: string } = {
+      limit: String(limit),
+      offset: '1',
+    };
+    const records: GoDaddyDomainRecord = [];
+
+    do {
+      const response = await this.getData<GoDaddyDomainRecord[]>(
+        this.withURLSeachParams(
+          `/v1/domains/${domainName}/records`,
+          URLSeachParams,
+        ),
+      );
+
+      if (!response || response.length === 0) {
+        hasNext = false;
+      }
+
+      if (hasNext && response) {
+        URLSeachParams.offset = String(Number(URLSeachParams.offset) + limit);
+
+        records.push(...response);
+      }
+    } while (hasNext);
+
+    return records;
   }
 
   public async iterateDomains(
     iteratee: ResourceIteratee<GoDaddyDomain>,
   ): Promise<void> {
-    const items = await this.getData<GoDaddyDomain[]>(`/v1/domains`);
-    for (const item of items || []) {
-      await iteratee(item);
-    }
+    const limit = 50;
+    let hasNext = true;
+    const URLSeachParams: { limit: string; marker?: string } = {
+      limit: String(limit),
+    };
+
+    do {
+      const response = await this.getData<GoDaddyDomainRecord[]>(
+        this.withURLSeachParams(`/v1/domains`, URLSeachParams),
+      );
+
+      if (!response || response.length === 0) {
+        hasNext = false;
+      }
+
+      if (hasNext && response) {
+        URLSeachParams.marker = response[response.length - 1].domain;
+
+        for (const item of response || []) {
+          await iteratee(item);
+        }
+      }
+    } while (hasNext);
   }
 }
 
