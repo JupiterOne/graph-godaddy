@@ -8,6 +8,12 @@ and this project adheres to
 
 ## [Unreleased]
 
+## 0.4.4 - 2023-10-24
+
+### Fixed
+
+- Fix retry hand
+
 ## 0.4.3 - 2023-06-14
 
 ### Fixed
